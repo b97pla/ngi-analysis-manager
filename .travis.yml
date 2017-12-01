@@ -3,10 +3,10 @@ python:
   - "3.6"
 
 install:
-  - pip install -r ./requirements-dev.txt
+  - pip install -e . -r ./requirements-dev.txt
 
 script:
-  - python -m pytest --cov=ngi-analysis-manager tests/
+  - pytest --cov=ngi_analysis_manager tests/
 
 after_success:
   - codecov
