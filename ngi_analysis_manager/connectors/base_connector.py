@@ -6,7 +6,7 @@ class BaseConnector:
         pass
 
     def _get_notimplementederror(self, method_name):
-        return NotImplementedError("Method {} is not implemented by {}.".format(method_name, type(self)))
+        return NotImplementedError("Method {} is not implemented by {}.".format(method_name, str(type(self))))
 
     def get_project(self, project_name):
         """
