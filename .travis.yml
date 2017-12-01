@@ -6,7 +6,7 @@ install:
   - pip install -r ./requirements-dev.txt
 
 script:
-  - pytest --cov=ngi-analysis-manager tests/
+  - python -m pytest --cov=ngi-analysis-manager tests/
 
 after_success:
   - codecov
