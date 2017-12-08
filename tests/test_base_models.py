@@ -1,6 +1,6 @@
 import mock
 import unittest
-from ngi_analysis_manager.exceptions.exceptions import ExpectedTypeNotMatchedError
+from ngi_analysis_manager.exceptions.exceptions import ExpectedTypeNotMatchedError, TypeNotRecognizedError
 from ngi_analysis_manager.models import base_models
 import constants
 
@@ -77,12 +77,23 @@ class TestSample(unittest.TestCase):
         pass
 
 
+class TestSampleType(unittest.TestCase):
+
+    def test_from_json(self):
+        self.assertEqual(
+            type(base_models.SampleType.from_json({"sample_type": "normal"})),
+            base_models.SampleTypeNormal)
+        self.assertEqual(
+            type(base_models.SampleType.from_json({"sample_type": "tumor"})),
+            base_models.SampleTypeTumor)
+        self.assertIsNone(base_models.SampleType.from_json({}))
+        with self.assertRaises(TypeNotRecognizedError):
+            base_models.SampleType.from_json({"sample_type": "this-is-not-a-sample-type"})
+
+
 class TestSampleRelation(unittest.TestCase):
 
     def setUp(self):
         self.base_sample_a = base_models.Sample("this-is-a-base-sample-a")
         self.base_sample_b = base_models.Sample("this-is-a-base-sample-b")
         self.base_sample_relation = base_models.RelationTypePaired()
-
-    def test_base_sample_relation(self):
-        base_models.SampleRelation(self.base_sample_a, self.base_sample_b, self.base_sample_relation)

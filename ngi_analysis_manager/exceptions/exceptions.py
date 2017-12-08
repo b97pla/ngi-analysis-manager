@@ -81,17 +81,34 @@ class GenderNotRecognizedError(NGIAnalysisManagerError):
         self.gender_string = gender_string
 
 
-class SampleTypeNotRecognizedError(NGIAnalysisManagerError):
+class TypeNotRecognizedError(NGIAnalysisManagerError):
     """
-    Exception that will be raised when a sample type string could not be mapped to an object
+    Exception that will be raised when a type string could not be mapped to an object
 
     Attributes:
-        sample_type_string -- the string that could not be mapped
+        type_string -- the string that could not be mapped
         message -- optional, additional information describing the exception circumstances
     """
 
-    def __init__(self, sample_type, message=None):
-        super(SampleTypeNotRecognizedError, self).__init__(
-            "A sample type object matching the string '{}' could not be created".format(sample_type),
+    def __init__(self, type_string, message=None):
+        super(TypeNotRecognizedError, self).__init__(
+            "A type object matching the string '{}' could not be created".format(type_string),
             message)
-        self.sample_type = sample_type
+        self.type_string = type_string
+
+
+class ReadOnlyConnectorError(NGIAnalysisManagerError):
+    """
+    Exception that will be raised if changes are attempted on a read-only connector
+
+    Attributes:
+          connector_obj -- the read-only connector object where the exception was raised
+          message -- optional, additional information describing the exception circumstances
+    """
+
+    def __init__(self, connector_object, message=None):
+        super(ReadOnlyConnectorError, self).__init__(
+            "The {} connector object was opened as read-only so no changes can be made".format(
+                type(connector_object).__name__),
+            message)
+        self.connector_object = connector_object

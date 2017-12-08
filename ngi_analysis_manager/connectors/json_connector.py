@@ -7,9 +7,9 @@ from ngi_analysis_manager.handlers.base_handler import BaseModelHandler
 
 class JSONConnector(BaseConnector):
 
-    def __init__(self, jsonfile, mode="r", model_handler=None):
+    def __init__(self, jsonfile, model_handler=None, **kwargs):
+        super(JSONConnector, self).__init__(**kwargs)
         self.jsonfile = jsonfile
-        self.mode = mode
         self.handle = None
         self.json_obj = None
         self.model_handler = model_handler if model_handler is not None else BaseModelHandler()
@@ -18,17 +18,9 @@ class JSONConnector(BaseConnector):
         """
         Open method for connector.
 
-        If mode is to read, parse the contents into the JSON object.
-        If mode is to write, this does nothing
-
         :return: None
         """
-        # if write-mode, just initialize the internal object and return
-        if self.mode == "w":
-            self.json_obj = dict()
-            return
-
-        with open(self.jsonfile, self.mode) as jsonh:
+        with open(self.jsonfile, "r") as jsonh:
             self.json_obj = json.load(jsonh)
 
     def close(self):
@@ -41,17 +33,16 @@ class JSONConnector(BaseConnector):
         """
         pass
 
+    @BaseConnector.mutator
     def commit(self):
         """
         Persist changes made to the object to the underlying file.
 
         If mode is read, this does nothing
+        Raises ReadOnlyConnectorError if the connector is read-only.
 
         :return: None
         """
-        if self.mode != "w":
-            return None
-
         with open(self.jsonfile, "w") as jsonh:
             json.dump(self.json_obj, jsonh)
 
@@ -68,3 +59,16 @@ class JSONConnector(BaseConnector):
             raise ProjectNotFoundError(project_name)
 
         return self.model_handler.project_from_json(self.json_obj["projects"][project_name])
+
+    @BaseConnector.mutator
+    def add_or_replace_project(self, project_obj):
+        """
+        Add or replace an existing project known to this connector.
+
+        Note that no changes will be written until the commit method is called.
+        Raises ReadOnlyConnectorError if the connector is read-only.
+
+        :param project_obj: A Project object representing the project
+        :return: None
+        """
+        self.json_obj.get("projects", {}).update(project_obj.to_json())

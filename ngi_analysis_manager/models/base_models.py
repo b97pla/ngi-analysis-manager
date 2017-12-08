@@ -1,8 +1,15 @@
 from ngi_analysis_manager.exceptions.exceptions import \
-    ExpectedTypeNotMatchedError, GenderNotRecognizedError, SampleTypeNotRecognizedError
+    ExpectedTypeNotMatchedError, GenderNotRecognizedError, TypeNotRecognizedError
 
 
 class BaseObject:
+
+    @classmethod
+    def create_instance(cls, description):
+        for subcls in cls.__subclasses__():
+            if description.lower() in subcls.DESCRIPTION:
+                return subcls(description)
+        raise TypeNotRecognizedError(description, message=cls.__name__)
 
     @staticmethod
     def add_attribute_with_type(current_attribute, attribute_value, attribute_type):
@@ -40,9 +47,14 @@ class BaseObject:
         # first, create the json object
         json_obj = {}
 
+        # initialize the attribute_name_translation to a proper dict if needed
+        attribute_name_translation = getattr(self, "attribute_name_translation", dict())
+
         # next, get the attributes
         for attribute_name in self.__dict__:
             attribute_val = getattr(self, attribute_name)
+            # translate the attribute name if such a translation exists
+            attribute_name = attribute_name_translation.get(attribute_name, attribute_name)
             if type(attribute_val) is list:
                 if len(attribute_val) > 0:
                     json_obj[attribute_name] = {}
@@ -60,10 +72,26 @@ class Project(BaseObject):
 
     def __init__(self, project_name):
         self.project_name = project_name
+        self.project_status = None
+        self.analysis_type = None
+        self.sequencing_facility = None
+        self.delivery_status = None
         self.project_samples = []
 
     def add_project_sample(self, project_sample):
         self.add_attribute_with_type(self.project_samples, project_sample, Sample)
+
+    def set_status(self, status):
+        self.project_status = self.add_attribute_with_type([], status, StatusObject).pop()
+
+    def set_analysis_type(self, analysis_type):
+        self.analysis_type = self.add_attribute_with_type([], analysis_type, AnalysisType).pop()
+
+    def set_sequencing_facility(self, sequencing_facility):
+        self.sequencing_facility = self.add_attribute_with_type([], sequencing_facility, SequencingFacility).pop()
+
+    def set_delivery_status(self, delivery_status):
+        self.delivery_status = self.add_attribute_with_type([], delivery_status, DeliveryStatus).pop()
 
     @staticmethod
     def from_json(json_obj):
@@ -204,20 +232,13 @@ class LaneBarcode(BaseObject):
 
 class SampleGender(BaseObject):
 
-    @staticmethod
-    def create_instance(sample_gender):
-        for cls in SampleGender.__subclasses__():
-            if sample_gender.lower() in cls.DESCRIPTION:
-                return cls()
-        raise GenderNotRecognizedError(sample_gender)
+    def __init__(self, sample_gender):
+        self.sample_gender = sample_gender
 
     @staticmethod
     def from_json(json_obj):
         sample_gender = json_obj.get("sample_gender")
         return SampleGender.create_instance(sample_gender) if sample_gender is not None else None
-
-    def to_json(self):
-        return {"sample_gender": self.DESCRIPTION[0]}
 
 
 class SampleGenderUnknown(SampleGender):
@@ -234,20 +255,13 @@ class SampleGenderMale(SampleGender):
 
 class SampleType(BaseObject):
 
-    @staticmethod
-    def create_instance(sample_type):
-        for cls in SampleType.__subclasses__():
-            if sample_type.lower() in cls.DESCRIPTION:
-                return cls()
-        raise SampleTypeNotRecognizedError(sample_type)
+    def __init__(self, sample_type):
+        self.sample_type = sample_type
 
     @staticmethod
     def from_json(json_obj):
         sample_type = json_obj.get("sample_type")
         return SampleType.create_instance(sample_type) if sample_type is not None else None
-
-    def to_json(self):
-        return {"sample_type": self.DESCRIPTION[0]}
 
 
 class SampleTypeNormal(SampleType):
@@ -259,16 +273,105 @@ class SampleTypeTumor(SampleType):
 
 
 class SampleRelationType(BaseObject):
-    pass
+
+    def __init__(self, sample_relation_type):
+        self.sample_relation_type = sample_relation_type
+
+    @staticmethod
+    def from_json(json_obj):
+        sample_relation_type = json_obj.get("sample_relation_type")
+        return SampleRelationType.create_instance(sample_relation_type) if sample_relation_type is not None else None
 
 
 class RelationTypePaired(SampleRelationType):
-    pass
+    DESCRIPTION = ["paired"]
 
 
 class RelationTypeSibling(SampleRelationType):
-    pass
+    DESCRIPTION = ["sibling"]
 
 
 class RelationTypeParent(SampleRelationType):
-    pass
+    DESCRIPTION = ["parent"]
+
+
+class StatusObject(BaseObject):
+
+    def __init__(self, status):
+        self.status = status
+
+    @staticmethod
+    def from_json(json_obj):
+        status = json_obj.get("status")
+        return StatusObject.create_instance(status) if status is not None else None
+
+
+class StatusClosed(StatusObject):
+    DESCRIPTION = ["closed"]
+
+
+class StatusOpen(StatusObject):
+    DESCRIPTION = ["open"]
+
+
+class StatusAborted(StatusObject):
+    DESCRIPTION = ["aborted"]
+
+
+class DeliveryStatus(BaseObject):
+
+    def __init__(self, delivery_status):
+        self.delivery_status = delivery_status
+
+    @staticmethod
+    def from_json(json_obj):
+        delivery_status = json_obj.get("delivery_status")
+        return DeliveryStatus.create_instance(delivery_status) if delivery_status is not None else None
+
+
+class DeliveryStatusNotDelivered(DeliveryStatus):
+    DESCRIPTION = ["not delivered"]
+
+
+class DeliveryStatusDelivered(DeliveryStatus):
+    DESCRIPTION = ["delivered"]
+
+
+class AnalysisType(BaseObject):
+
+    def __init__(self, analysis_type):
+        self.analysis_type = analysis_type
+
+    @staticmethod
+    def from_json(json_obj):
+        analysis_type = json_obj.get("analysis_type")
+        return AnalysisType.create_instance(analysis_type) if analysis_type is not None else None
+
+
+class AnalysisTypeWGS(AnalysisType):
+    DESCRIPTION = ["whole_genome_reseq", "wgs"]
+
+
+class AnalysisTypeRNASeq(AnalysisType):
+    DESCRIPTION = ["rna_seq", "ngi_rna_seq"]
+
+
+class SequencingFacility(BaseObject):
+
+    def __init__(self, sequencing_facility):
+        self.sequencing_facility = sequencing_facility
+
+    @staticmethod
+    def from_json(json_obj):
+        sequencing_facility = json_obj.get("sequencing_facility")
+        return SequencingFacility.create_instance(sequencing_facility) if sequencing_facility is not None else None
+
+
+class SequencingFacilityNGIU(SequencingFacility):
+    DESCRIPTION = ["ngi-u", "upps", "uppsala", "snpseq"]
+
+
+class SequencingFacilityNGIS(SequencingFacility):
+    DESCRIPTION = ["ngi-s", "sthlm", "stockholm"]
+
+
