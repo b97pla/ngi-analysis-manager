@@ -6,6 +6,9 @@ class BaseObject:
 
     @classmethod
     def create_instance(cls, description):
+        if description is None:
+            return None
+        # print("{} {}".format(cls, cls.__subclasses__()))
         for subcls in cls.__subclasses__():
             if description.lower() in subcls.DESCRIPTION:
                 return subcls(description)
@@ -93,10 +96,10 @@ class Project(BaseObject):
     def set_delivery_status(self, delivery_status):
         self.delivery_status = self.add_attribute_with_type([], delivery_status, DeliveryStatus).pop()
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         project_name = json_obj.get("project_name")
-        project_obj = Project(project_name)
+        project_obj = cls(project_name)
         for sample_json in json_obj.get("project_samples", {}).values():
             sample_obj = Sample.from_json(sample_json)
             project_obj.add_project_sample(sample_obj)
@@ -125,12 +128,12 @@ class Sample(BaseObject):
     def add_sample_relation(self, sample_relation):
         self.add_attribute_with_type(self.sample_relations, sample_relation, SampleRelation)
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sample_name = json_obj.get("sample_name")
         sample_gender = SampleGender.from_json(json_obj)
         sample_type = SampleType.from_json(json_obj)
-        sample_obj = Sample(sample_name, sample_gender=sample_gender, sample_type=sample_type)
+        sample_obj = cls(sample_name, sample_gender=sample_gender, sample_type=sample_type)
         for library_json in json_obj.get("sample_libraries", {}).values():
             library_obj = Library.from_json(library_json)
             sample_obj.add_sample_library(library_obj)
@@ -158,10 +161,10 @@ class Library(BaseObject):
     def add_library_sequencing_run(self, library_sequencing_run):
         self.add_attribute_with_type(self.library_sequencing_runs, library_sequencing_run, SequencingRun)
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         library_name = json_obj.get("library_name")
-        library_obj = Library(library_name)
+        library_obj = cls(library_name)
         for sequencing_run_json in json_obj.get("library_sequencing_runs", {}).values():
             sequencing_run_obj = SequencingRun.from_json(sequencing_run_json)
             library_obj.add_library_sequencing_run(sequencing_run_obj)
@@ -180,10 +183,10 @@ class SequencingRun(BaseObject):
     def add_sequencing_run_lane(self, sequencing_run_lane):
         self.add_attribute_with_type(self.sequencing_run_lanes, sequencing_run_lane, SequencingRunLane)
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sequencing_run_name = json_obj.get("sequencing_run_name")
-        sequencing_run_obj = SequencingRun(sequencing_run_name)
+        sequencing_run_obj = cls(sequencing_run_name)
         for lane_json in json_obj.get("sequencing_run_lanes", {}).values():
             lane_obj = SequencingRunLane.from_json(lane_json)
             sequencing_run_obj.add_sequencing_run_lane(lane_obj)
@@ -202,10 +205,10 @@ class SequencingRunLane(BaseObject):
     def add_lane_barcode(self, lane_barcode):
         self.add_attribute_with_type(self.lane_barcodes, lane_barcode, LaneBarcode)
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         lane_num = json_obj.get("lane_num")
-        lane_obj = SequencingRunLane(lane_num)
+        lane_obj = cls(lane_num)
         for barcode_json in json_obj.get("lane_barcodes", {}).values():
             barcode_obj = LaneBarcode.from_json(barcode_json)
             lane_obj.add_lane_barcode(barcode_obj)
@@ -220,10 +223,10 @@ class LaneBarcode(BaseObject):
     def __init__(self, barcode_seq):
         self.barcode_sequence = self.add_attribute_with_type([], barcode_seq, str).pop()
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         barcode_seq = json_obj.get("barcode_sequence")
-        barcode_obj = LaneBarcode(barcode_seq)
+        barcode_obj = cls(barcode_seq)
         return barcode_obj
 
     def to_json(self):
@@ -235,10 +238,10 @@ class SampleGender(BaseObject):
     def __init__(self, sample_gender):
         self.sample_gender = sample_gender
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sample_gender = json_obj.get("sample_gender")
-        return SampleGender.create_instance(sample_gender) if sample_gender is not None else None
+        return cls.create_instance(sample_gender)
 
 
 class SampleGenderUnknown(SampleGender):
@@ -258,10 +261,10 @@ class SampleType(BaseObject):
     def __init__(self, sample_type):
         self.sample_type = sample_type
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sample_type = json_obj.get("sample_type")
-        return SampleType.create_instance(sample_type) if sample_type is not None else None
+        return cls.create_instance(sample_type)
 
 
 class SampleTypeNormal(SampleType):
@@ -277,10 +280,10 @@ class SampleRelationType(BaseObject):
     def __init__(self, sample_relation_type):
         self.sample_relation_type = sample_relation_type
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sample_relation_type = json_obj.get("sample_relation_type")
-        return SampleRelationType.create_instance(sample_relation_type) if sample_relation_type is not None else None
+        return cls.create_instance(sample_relation_type)
 
 
 class RelationTypePaired(SampleRelationType):
@@ -300,10 +303,10 @@ class StatusObject(BaseObject):
     def __init__(self, status):
         self.status = status
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         status = json_obj.get("status")
-        return StatusObject.create_instance(status) if status is not None else None
+        return cls.create_instance(status)
 
 
 class StatusClosed(StatusObject):
@@ -318,15 +321,23 @@ class StatusAborted(StatusObject):
     DESCRIPTION = ["aborted"]
 
 
+class StatusFresh(StatusObject):
+    DESCRIPTION = ["fresh"]
+
+
+class StatusStale(StatusObject):
+    DESCRIPTION = ["stale"]
+
+
 class DeliveryStatus(BaseObject):
 
     def __init__(self, delivery_status):
         self.delivery_status = delivery_status
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         delivery_status = json_obj.get("delivery_status")
-        return DeliveryStatus.create_instance(delivery_status) if delivery_status is not None else None
+        return cls.create_instance(delivery_status)
 
 
 class DeliveryStatusNotDelivered(DeliveryStatus):
@@ -342,10 +353,10 @@ class AnalysisType(BaseObject):
     def __init__(self, analysis_type):
         self.analysis_type = analysis_type
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         analysis_type = json_obj.get("analysis_type")
-        return AnalysisType.create_instance(analysis_type) if analysis_type is not None else None
+        return cls.create_instance(analysis_type)
 
 
 class AnalysisTypeWGS(AnalysisType):
@@ -361,10 +372,10 @@ class SequencingFacility(BaseObject):
     def __init__(self, sequencing_facility):
         self.sequencing_facility = sequencing_facility
 
-    @staticmethod
-    def from_json(json_obj):
+    @classmethod
+    def from_json(cls, json_obj):
         sequencing_facility = json_obj.get("sequencing_facility")
-        return SequencingFacility.create_instance(sequencing_facility) if sequencing_facility is not None else None
+        return cls.create_instance(sequencing_facility)
 
 
 class SequencingFacilityNGIU(SequencingFacility):
