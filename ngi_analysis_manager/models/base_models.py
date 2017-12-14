@@ -2,7 +2,7 @@ from ngi_analysis_manager.exceptions.exceptions import \
     ExpectedTypeNotMatchedError, GenderNotRecognizedError, TypeNotRecognizedError
 
 
-class BaseObject:
+class BaseModel:
 
     @classmethod
     def create_instance(cls, description):
@@ -40,7 +40,7 @@ class BaseObject:
         3. Attributes that are of list type are added as a dict with the attribute name as key.
             The list is assumed to contain BaseObjects and it is therefore iterated over, calling
             each objects to_json method and update the dict with the result.
-        3. Attributes of BaseObject type update the dict with the return value of that object's to_json method
+        3. Attributes of BaseModel type update the dict with the return value of that object's to_json method
         5. Other attribute values are just added as they are with the name of the attribute as key
 
         Any subclass can override this implementation
@@ -63,7 +63,7 @@ class BaseObject:
                     json_obj[attribute_name] = {}
                     for list_object in attribute_val:
                         json_obj[attribute_name].update(list_object.to_json())
-            elif isinstance(attribute_val, BaseObject):
+            elif isinstance(attribute_val, BaseModel):
                 json_obj.update(attribute_val.to_json())
             elif attribute_val is not None:
                 json_obj[attribute_name] = attribute_val
@@ -71,7 +71,7 @@ class BaseObject:
         return json_obj
 
 
-class Project(BaseObject):
+class Project(BaseModel):
 
     def __init__(self, project_name):
         self.project_name = project_name
@@ -85,7 +85,7 @@ class Project(BaseObject):
         self.add_attribute_with_type(self.project_samples, project_sample, Sample)
 
     def set_status(self, status):
-        self.project_status = self.add_attribute_with_type([], status, StatusObject).pop()
+        self.project_status = self.add_attribute_with_type([], status, StatusModel).pop()
 
     def set_analysis_type(self, analysis_type):
         self.analysis_type = self.add_attribute_with_type([], analysis_type, AnalysisType).pop()
@@ -109,7 +109,7 @@ class Project(BaseObject):
         return {self.project_name: super(Project, self).to_json()}
 
 
-class Sample(BaseObject):
+class Sample(BaseModel):
 
     def __init__(self, sample_name, sample_gender=None, sample_type=None):
         self.sample_name = sample_name
@@ -143,7 +143,7 @@ class Sample(BaseObject):
         return {self.sample_name: super(Sample, self).to_json()}
 
 
-class SampleRelation(BaseObject):
+class SampleRelation(BaseModel):
 
     def __init__(self, sample_a, sample_b, sample_relation_type):
         self.sample_a = self.add_attribute_with_type([], sample_a, Sample).pop()
@@ -152,7 +152,7 @@ class SampleRelation(BaseObject):
             [], sample_relation_type, SampleRelationType).pop()
 
 
-class Library(BaseObject):
+class Library(BaseModel):
 
     def __init__(self, library_name):
         self.library_name = library_name
@@ -174,7 +174,7 @@ class Library(BaseObject):
         return {self.library_name: super(Library, self).to_json()}
 
 
-class SequencingRun(BaseObject):
+class SequencingRun(BaseModel):
 
     def __init__(self, sequencing_run_name):
         self.sequencing_run_name = sequencing_run_name
@@ -196,7 +196,7 @@ class SequencingRun(BaseObject):
         return {self.sequencing_run_name: super(SequencingRun, self).to_json()}
 
 
-class SequencingRunLane(BaseObject):
+class SequencingRunLane(BaseModel):
 
     def __init__(self, lane_num):
         self.lane_num = lane_num
@@ -218,7 +218,7 @@ class SequencingRunLane(BaseObject):
         return {self.lane_num: super(SequencingRunLane, self).to_json()}
 
 
-class LaneBarcode(BaseObject):
+class LaneBarcode(BaseModel):
 
     def __init__(self, barcode_seq):
         self.barcode_sequence = self.add_attribute_with_type([], barcode_seq, str).pop()
@@ -233,7 +233,7 @@ class LaneBarcode(BaseObject):
         return {self.barcode_sequence: super(LaneBarcode, self).to_json()}
 
 
-class SampleGender(BaseObject):
+class SampleGender(BaseModel):
 
     def __init__(self, sample_gender):
         self.sample_gender = sample_gender
@@ -256,7 +256,7 @@ class SampleGenderMale(SampleGender):
     DESCRIPTION = ["male", "m"]
 
 
-class SampleType(BaseObject):
+class SampleType(BaseModel):
 
     def __init__(self, sample_type):
         self.sample_type = sample_type
@@ -275,7 +275,7 @@ class SampleTypeTumor(SampleType):
     DESCRIPTION = ["tumor", "t"]
 
 
-class SampleRelationType(BaseObject):
+class SampleRelationType(BaseModel):
 
     def __init__(self, sample_relation_type):
         self.sample_relation_type = sample_relation_type
@@ -298,7 +298,7 @@ class RelationTypeParent(SampleRelationType):
     DESCRIPTION = ["parent"]
 
 
-class StatusObject(BaseObject):
+class StatusModel(BaseModel):
 
     def __init__(self, status):
         self.status = status
@@ -309,27 +309,27 @@ class StatusObject(BaseObject):
         return cls.create_instance(status)
 
 
-class StatusClosed(StatusObject):
+class StatusClosed(StatusModel):
     DESCRIPTION = ["closed"]
 
 
-class StatusOpen(StatusObject):
+class StatusOpen(StatusModel):
     DESCRIPTION = ["open"]
 
 
-class StatusAborted(StatusObject):
+class StatusAborted(StatusModel):
     DESCRIPTION = ["aborted"]
 
 
-class StatusFresh(StatusObject):
+class StatusFresh(StatusModel):
     DESCRIPTION = ["fresh"]
 
 
-class StatusStale(StatusObject):
+class StatusStale(StatusModel):
     DESCRIPTION = ["stale"]
 
 
-class DeliveryStatus(BaseObject):
+class DeliveryStatus(BaseModel):
 
     def __init__(self, delivery_status):
         self.delivery_status = delivery_status
@@ -348,7 +348,7 @@ class DeliveryStatusDelivered(DeliveryStatus):
     DESCRIPTION = ["delivered"]
 
 
-class AnalysisType(BaseObject):
+class AnalysisType(BaseModel):
 
     def __init__(self, analysis_type):
         self.analysis_type = analysis_type
@@ -367,7 +367,7 @@ class AnalysisTypeRNASeq(AnalysisType):
     DESCRIPTION = ["rna_seq", "ngi_rna_seq"]
 
 
-class SequencingFacility(BaseObject):
+class SequencingFacility(BaseModel):
 
     def __init__(self, sequencing_facility):
         self.sequencing_facility = sequencing_facility

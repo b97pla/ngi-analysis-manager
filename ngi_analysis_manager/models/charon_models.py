@@ -2,11 +2,11 @@
 from ngi_analysis_manager.models import base_models
 
 
-class CharonObject(base_models.BaseObject):
+class CharonModel(base_models.BaseModel):
     pass
 
 
-class Project(CharonObject, base_models.Project):
+class Project(CharonModel, base_models.Project):
 
     attribute_name_translation = {
         "project_name": "projectid",
@@ -21,7 +21,7 @@ class Project(CharonObject, base_models.Project):
                 json_obj[base_key] = json_obj.pop(charon_key)
         project_name = json_obj.get("project_name")
         project_obj = cls(project_name)
-        project_obj.set_status(StatusObject.from_json(json_obj))
+        project_obj.set_status(StatusModel.from_json(json_obj))
         project_obj.set_analysis_type(AnalysisType.from_json(json_obj))
         project_obj.set_sequencing_facility(SequencingFacility.from_json(json_obj))
         project_obj.set_delivery_status(DeliveryStatus.from_json(json_obj))
@@ -32,7 +32,7 @@ class Project(CharonObject, base_models.Project):
         return list(json_obj.values()).pop()
 
 
-class Sample(CharonObject, base_models.Sample):
+class Sample(CharonModel, base_models.Sample):
 
     attribute_name_translation = {
         "sample_name": "sampleid"}
@@ -51,31 +51,31 @@ class Sample(CharonObject, base_models.Sample):
         return list(json_obj.values()).pop()
 
 
-class StatusObject(CharonObject, base_models.StatusObject):
+class StatusModel(CharonModel, base_models.StatusModel):
     pass
 
 
-class StatusClosed(StatusObject, base_models.StatusClosed):
+class StatusClosed(StatusModel, base_models.StatusClosed):
     pass
 
 
-class StatusOpen(StatusObject, base_models.StatusOpen):
+class StatusOpen(StatusModel, base_models.StatusOpen):
     pass
 
 
-class StatusAborted(StatusObject, base_models.StatusAborted):
+class StatusAborted(StatusModel, base_models.StatusAborted):
     pass
 
 
-class StatusStale(StatusObject, base_models.StatusAborted):
+class StatusStale(StatusModel, base_models.StatusAborted):
     pass
 
 
-class StatusFresh(StatusObject, base_models.StatusAborted):
+class StatusFresh(StatusModel, base_models.StatusAborted):
     pass
 
 
-class AnalysisType(CharonObject, base_models.AnalysisType):
+class AnalysisType(CharonModel, base_models.AnalysisType):
     pass
 
 
@@ -87,7 +87,7 @@ class AnalysisTypeRNASeq(AnalysisType, base_models.AnalysisTypeRNASeq):
     pass
 
 
-class SequencingFacility(CharonObject, base_models.SequencingFacility):
+class SequencingFacility(CharonModel, base_models.SequencingFacility):
     pass
 
 
@@ -99,7 +99,7 @@ class SequencingFacilityNGIS(SequencingFacility, base_models.SequencingFacilityN
     pass
 
 
-class DeliveryStatus(CharonObject, base_models.DeliveryStatus):
+class DeliveryStatus(CharonModel, base_models.DeliveryStatus):
     pass
 
 

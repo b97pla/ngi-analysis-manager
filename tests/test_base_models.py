@@ -11,21 +11,21 @@ class TestBaseObject(unittest.TestCase):
         str_example = "this-is-a-str"
         self.assertListEqual(
             [str_example],
-            base_models.BaseObject.add_attribute_with_type([], str_example, str))
+            base_models.BaseModel.add_attribute_with_type([], str_example, str))
         self.assertListEqual(
             [str_example, str_example],
-            base_models.BaseObject.add_attribute_with_type([str_example], str_example, object))
+            base_models.BaseModel.add_attribute_with_type([str_example], str_example, object))
         with self.assertRaises(ExpectedTypeNotMatchedError):
-            base_models.BaseObject.add_attribute_with_type([], str_example, base_models.BaseObject)
+            base_models.BaseModel.add_attribute_with_type([], str_example, base_models.BaseModel)
 
     def test_to_json(self):
-        base_obj = base_models.BaseObject()
+        base_obj = base_models.BaseModel()
         expected_absent = {
             "absent-key-1": None,
             "absent-key-2": []
         }
         mocked_json_response = {"mocked-json-response-key": "mocked-json-response-value"}
-        base_obj_listed = base_models.BaseObject()
+        base_obj_listed = base_models.BaseModel()
         base_obj_listed.to_json = mock.MagicMock(
             return_value=mocked_json_response)
         expected_present = {
