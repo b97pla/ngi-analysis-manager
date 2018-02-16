@@ -9,6 +9,54 @@ class NGIAnalysisManagerError(Exception):
             ": {}".format(message) if message is not None else "")
 
 
+class SampleSheetNotFoundError(NGIAnalysisManagerError):
+    """
+    Exception that will be raised when a samplesheet could not be found in a runfolder
+
+    Attributes:
+        runfolder_path -- the runfolder path in which a samplesheet could not be found
+        message -- optional, additional information describing the exception circumstances
+    """
+
+    def __init__(self, runfolder_path, message=None):
+        super(SampleSheetNotFoundError, self).__init__(
+            "A samplesheet could not be found in {}".format(runfolder_path),
+            message)
+        self.runfolder_path = runfolder_path
+
+
+class SampleSheetFormatNotRecognizedError(NGIAnalysisManagerError):
+    """
+    Exception that will be raised when a samplesheet could not be parsed properly
+
+    Attributes:
+        samplesheet_path -- the path to the samplesheet which could not be parsed
+        message -- optional, additional information describing the exception circumstances
+    """
+
+    def __init__(self, samplesheet_path, message=None):
+        super(SampleSheetFormatNotRecognizedError, self).__init__(
+            "The samplesheet {} could not be properly parsed".format(samplesheet_path),
+            message)
+        self.samplesheet_path = samplesheet_path
+
+
+class IllegalSampleSheetConfigurationError(NGIAnalysisManagerError):
+    """
+    Exception that will be raised when an non-allowed samplesheet configuration is detected
+
+    Attributes:
+        samplesheet_path -- the path to the samplesheet with the non-allowed configuration
+        message -- optional, additional information describing the exception circumstances
+    """
+
+    def __init__(self, samplesheet_path, message=None):
+        super(IllegalSampleSheetConfigurationError, self).__init__(
+            "A non-allowed configuration was encountered in samplesheet {}".format(samplesheet_path),
+            message)
+        self.samplesheet_path = samplesheet_path
+
+
 class ProjectNotFoundError(NGIAnalysisManagerError):
     """
     Exception that will be raised when a requested project id could not be found in a context

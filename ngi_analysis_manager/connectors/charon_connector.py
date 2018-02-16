@@ -51,15 +51,11 @@ class CharonConnector(BaseConnector):
     def get_project(self, project_name):
         endpoint = ["project", project_name]
         json_obj = self.handle_repsonse(self.session.get(self.url(endpoint)))
-        print(json.dumps(json_obj, indent=2))
         project_obj = self.model_handler.project_from_json(json_obj)
-        print(project_obj.to_json())
         return project_obj
 
     def get_sample(self, project_name, sample_name):
         endpoint = ["sample", project_name, sample_name]
         json_obj = self.handle_repsonse(self.session.get(self.url(endpoint)))
-        print(json.dumps(json_obj, indent=2))
         sample_obj = self.model_handler.sample_from_json(json_obj)
-        print(sample_obj.to_json())
         return sample_obj
